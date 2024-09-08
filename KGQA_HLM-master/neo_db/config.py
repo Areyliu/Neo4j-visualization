@@ -1,8 +1,10 @@
 from py2neo import Graph
 graph = Graph(
     "bolt://localhost:7687",
-    auth=("neo4j",'20090526Rui')
+    auth=("neo4j",'3022244323')
 )
+
+
 CA_LIST = {"贾家荣国府":0,"贾家宁国府":1,"王家":2,"史家":3,"薛家":4,"其他":5,"林家":6}
 similar_words = {
     "爸爸": "父亲",
