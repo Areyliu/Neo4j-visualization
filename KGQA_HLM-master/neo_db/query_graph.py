@@ -5,28 +5,121 @@ import os
 import json
 import base64
 
-def query(name):
+last_node = False
+last_name = None
+
+def query_node(name):
+    last_name = name
+    last_node = True
+
     data = graph.run(
-    "MATCH (p)-[r]->(n:NodeLabel {chname: '%s'}) RETURN p.chname, p.enname, p.tag, p.desc, r.relation, n.chname, n.enname, n.tag, n.desc \
-     UNION ALL \
-     MATCH (p:NodeLabel {chname: '%s'})-[r]->(n) RETURN p.chname, p.enname, p.tag, p.desc, r.relation, n.chname, n.enname, n.tag, n.desc" % (name, name)
+        "MATCH (p)-[r]->(n {name: '%s'}) RETURN p.name, type(r) AS link_type, n.name \
+        UNION ALL \
+        MATCH (p {name: '%s'})-[r]->(n) RETURN p.name, type(r) AS link_type, n.name" % (name, name)
     )
     data = list(data)
     return get_json_data(data)
 
-def delete(name):
-    graph.run(
-        "MATCH (p:NodeLabel {chname: '%s'}) DETACH DELETE p" % (name)
+
+def query_link(link_type):
+
+    last_query = link_type
+    last_node = False
+
+    data = graph.run(
+        "MATCH (p)-[r:%s]->(n) RETURN p.name, type(r) AS link_type, n.name" % (link_type)
     )
+    data = list(data)
+    return get_json_data(data)
+
+
+def delete_node(name):
+    graph.run(
+        "MATCH (p {name: '%s'}) DETACH DELETE p" % (name)
+    )
+    if last_node and last_name != None:
+        return query_node(name)
     return {'data':[],"links":[]}
 
-def modify(name, kwarg: dict):
+
+def delete_link(link_type):
+    graph.run(
+        "MATCH (p)-[r:%s]->(n) DELETE r" % (link_type)
+    )
+    
+    if not last_node and last_name is not None:
+        return query_link(link_type)
+    
+    return {'data': [], "links": []}
+
+
+def add_node(name, kwarg: dict):
     data = graph.run(
-        f"MATCH (n {{chname: '{name}'}}) " +
+        f"CREATE (n:NodeLabel {{name: '{name}'}}) " +
         "SET " +
         (', '.join([f"n.{k} = '{v}'" for k, v in kwarg.items()])) +
         " RETURN n"
     )
+    data = list(data)
+    return get_json_data(data)
+
+
+def add_link(start_name, end_name, link_type, kwarg: dict):
+    # 查询并创建起始节点
+    graph.run(
+        f"MERGE (start:NodeLabel {{name: '{start_name}'}})"
+    )
+    
+    # 查询并创建结束节点
+    graph.run(
+        f"MERGE (end:NodeLabel {{name: '{end_name}'}})"
+    )
+    
+    # 创建边，使用传入的 link_type
+    data = graph.run(
+        f"MATCH (start:NodeLabel {{name: '{start_name}'}}), (end:NodeLabel {{name: '{end_name}'}}) "
+        f"CREATE (start)-[r:{link_type}]->(end) "  # 使用传入的 link_type
+        "SET " +
+        (', '.join([f"r.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN start.name, r.name, end.name"
+    )
+    
+    data = list(data)
+    return get_json_data(data)
+  
+
+
+def modify_node(name, kwarg: dict):
+    data = graph.run(
+        f"MATCH (n {{name: '{name}'}}) " +
+        "SET " +
+        (', '.join([f"n.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN n"
+    )
+    data = list(data)
+    return get_json_data(data)
+
+
+def modify_link(start_name, end_name, link_type, kwarg: dict):
+    # 查询并创建起始节点
+    graph.run(
+        f"MERGE (start:NodeLabel {{name: '{start_name}'}})"
+    )
+    
+    # 查询并创建结束节点
+    graph.run(
+        f"MERGE (end:NodeLabel {{name: '{end_name}'}})"
+    )
+    
+    # 创建或更新边，使用传入的 link_type
+    data = graph.run(
+        f"MATCH (start:NodeLabel {{name: '{start_name}'}})-[r:{link_type}]->(end:NodeLabel {{name: '{end_name}'}}) " 
+        "MERGE (start)-[r:{link_type}]->(end) "
+        "SET " +
+        (', '.join([f"r.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN start, r, end"
+    )
+    
     data = list(data)
     return get_json_data(data)
     
