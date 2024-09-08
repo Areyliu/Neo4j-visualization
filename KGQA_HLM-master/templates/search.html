@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基于知识图谱的医疗手段可视化及问答系统</title>
+    <title>基于知识图谱的wiki百科可视化及问答系统</title>
     <!--Bootstrap Stylesheet [ REQUIRED ]-->
     <link href="../static/css/bootstrap.min.css" rel="stylesheet">
     <link rel="shortcut icon" href="../static/images/logo.jpg">
@@ -89,7 +89,7 @@
                         
                     </ul>
                     <ul class="nav navbar-top-links pull-left">
-                        <h4>基于知识图谱的医疗手段可视化及问答系统</h4>
+                        <h4>基于知识图谱的wiki百科可视化及问答系统</h4>
                     </ul>
                 </div>
                 <!--================================-->
@@ -109,7 +109,7 @@
                 <!--===================================================-->
                 <div id="page-content">
                     
-					<h4 class="text-main pad-btm bord-btm">药物疾病关系可视化</h4>
+					<h4 class="text-main pad-btm bord-btm">wiki百科关系可视化</h4>
                 
               <div class="row">
                 <div class="col-lg-6">
@@ -194,7 +194,7 @@
 						            
                                   
                                     <!--Category name-->
-						            <li class="list-header"> 药物疾病关系可视化</li>
+						            <li class="list-header"> wiki百科关系可视化</li>
                         
                                     <!--Menu list item-->
                                     
@@ -215,7 +215,7 @@
                                         <a href="{{ url_for('get_all_relation') }}">
                                             <i class="fa fa-pie-chart" style="width:24px"></i>
                                             <span class="menu-title">
-                                                <strong>药物疾病关系全貌</strong>
+                                                <strong>wiki百科关系全貌</strong>
                                             </span>
                                             
                                         </a>
@@ -234,7 +234,7 @@
 						            <li >
 						                <a href="{{ url_for('KGQA') }}">
 						                    <i class="fa fa-question-circle" style="width:24px"></i>
-						                    <span class="menu-title">药物疾病关系问答</span>
+						                    <span class="menu-title">wiki百科关系问答</span>
 											
 						                </a>
 						
@@ -297,7 +297,7 @@
     option = {
         // backgroundColor: "white",
         title: {
-            // text: '药物疾病关系图',
+            // text: 'wiki百科关系图',
             textStyle: {
                 // color: "white",
                 fontWeight: "lighter",
@@ -464,7 +464,7 @@
         if (!actionType) {
             alert("请选择操作类型");
             return;
-        } 
+        }
 
         // 根据选择的内容进行不同操作
         alert("你选择了: " + itemType + " 进行 " + actionType + " 操作");
