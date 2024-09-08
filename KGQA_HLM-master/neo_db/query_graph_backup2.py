@@ -5,24 +5,73 @@ import os
 import json
 import base64
 
-def query(name):
+last_node = False
+last_name = None
+
+def query_node(name):
+    last_name = name
+    last_node = True
+
     data = graph.run(
+<<<<<<< HEAD:KGQA_HLM-master/neo_db/query_graph_backup2.py
     "match(p )-[r]->(n:Person{Name:'%s'}) return  p.Name,r.relation,n.Name,p.cate,n.cate\
         Union all\
     match(p:Person {Name:'%s'}) -[r]->(n) return p.Name, r.relation, n.Name, p.cate, n.cate" % (name,name)
+=======
+        "MATCH (p)-[r]->(n {name: '%s'}) RETURN p.name, type(r) AS link_type, n.name \
+        UNION ALL \
+        MATCH (p {name: '%s'})-[r]->(n) RETURN p.name, type(r) AS link_type, n.name" % (name, name)
+>>>>>>> 74efdc44a7f48022ddb6e4a85635e00719643654:KGQA_HLM-master/neo_db/query_graph.py
     )
     data = list(data)
     return get_json_data(data)
 
+<<<<<<< HEAD:KGQA_HLM-master/neo_db/query_graph_backup2.py
 def delete(name):
     graph.run(
     "match(p:Person {Name:'%s'}) detach delete p" % (name)
+=======
+
+def query_link(link_type):
+
+    last_query = link_type
+    last_node = False
+
+    data = graph.run(
+        "MATCH (p)-[r:%s]->(n) RETURN p.name, type(r) AS link_type, n.name" % (link_type)
+>>>>>>> 74efdc44a7f48022ddb6e4a85635e00719643654:KGQA_HLM-master/neo_db/query_graph.py
     )
+    data = list(data)
+    return get_json_data(data)
+
+
+def delete_node(name):
+    graph.run(
+        "MATCH (p {name: '%s'}) DETACH DELETE p" % (name)
+    )
+    if last_node and last_name != None:
+        return query_node(name)
     return {'data':[],"links":[]}
 
-def modify(name, kwarg: dict):
+
+def delete_link(link_type):
+    graph.run(
+        "MATCH (p)-[r:%s]->(n) DELETE r" % (link_type)
+    )
+    
+    if not last_node and last_name is not None:
+        return query_link(link_type)
+    
+    return {'data': [], "links": []}
+
+
+def add_node(name, kwarg: dict):
     data = graph.run(
+<<<<<<< HEAD:KGQA_HLM-master/neo_db/query_graph_backup2.py
         f"MATCH (n {{name: {name}}}) " +
+=======
+        f"CREATE (n:NodeLabel {{name: '{name}'}}) " +
+>>>>>>> 74efdc44a7f48022ddb6e4a85635e00719643654:KGQA_HLM-master/neo_db/query_graph.py
         "SET " +
         (','.join([f"n.{k} = {v} " for k,v in kwarg])) +
         "RETURN n"
@@ -30,6 +79,69 @@ def modify(name, kwarg: dict):
     data = list(data)
     return get_json_data(data)
 
+<<<<<<< HEAD:KGQA_HLM-master/neo_db/query_graph_backup2.py
+=======
+
+def add_link(start_name, end_name, link_type, kwarg: dict):
+    # 查询并创建起始节点
+    graph.run(
+        f"MERGE (start:NodeLabel {{name: '{start_name}'}})"
+    )
+    
+    # 查询并创建结束节点
+    graph.run(
+        f"MERGE (end:NodeLabel {{name: '{end_name}'}})"
+    )
+    
+    # 创建边，使用传入的 link_type
+    data = graph.run(
+        f"MATCH (start:NodeLabel {{name: '{start_name}'}}), (end:NodeLabel {{name: '{end_name}'}}) "
+        f"CREATE (start)-[r:{link_type}]->(end) "  # 使用传入的 link_type
+        "SET " +
+        (', '.join([f"r.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN start.name, r.name, end.name"
+    )
+    
+    data = list(data)
+    return get_json_data(data)
+  
+
+
+def modify_node(name, kwarg: dict):
+    data = graph.run(
+        f"MATCH (n {{name: '{name}'}}) " +
+        "SET " +
+        (', '.join([f"n.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN n"
+    )
+    data = list(data)
+    return get_json_data(data)
+
+
+def modify_link(start_name, end_name, link_type, kwarg: dict):
+    # 查询并创建起始节点
+    graph.run(
+        f"MERGE (start:NodeLabel {{name: '{start_name}'}})"
+    )
+    
+    # 查询并创建结束节点
+    graph.run(
+        f"MERGE (end:NodeLabel {{name: '{end_name}'}})"
+    )
+    
+    # 创建或更新边，使用传入的 link_type
+    data = graph.run(
+        f"MATCH (start:NodeLabel {{name: '{start_name}'}})-[r:{link_type}]->(end:NodeLabel {{name: '{end_name}'}}) " 
+        "MERGE (start)-[r:{link_type}]->(end) "
+        "SET " +
+        (', '.join([f"r.{k} = '{v}'" for k, v in kwarg.items()])) +
+        " RETURN start, r, end"
+    )
+    
+    data = list(data)
+    return get_json_data(data)
+    
+>>>>>>> 74efdc44a7f48022ddb6e4a85635e00719643654:KGQA_HLM-master/neo_db/query_graph.py
 
 def get_json_data(data):
     json_data = {'data': [], "links": []}
