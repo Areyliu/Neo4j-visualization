@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from neo_db.query_graph import query,get_KGQA_answer,get_answer_profile, delete, modify
+from neo_db.query_graph_backup2 import query,get_KGQA_answer,get_answer_profile, delete, modify
 # from KGQA.ltp import get_target_array
 app = Flask(__name__)
 

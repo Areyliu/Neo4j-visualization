@@ -1,7 +1,7 @@
 from py2neo import Graph
 graph = Graph(
     "bolt://localhost:7687",
-    auth=("neo4j",'3022244323')
+    auth=("neo4j",'20090526Rui')
 )
 
 

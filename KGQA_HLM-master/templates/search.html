@@ -60,7 +60,7 @@
 
     .modal-content {
         background: linear-gradient(135deg, #0066cc, #66ccff); /* 渐进蓝色背景 */
-        color: white; /* 文字颜色为白色 */
+        color: black; /* 文字颜色为白色 */
         padding: 20px;
         border: none; /* 移除边框 */
         width: 400px; /* 增加宽度 */
@@ -117,6 +117,8 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h3>请输入信息</h3>
+            <label for="name">name:</label>
+            <input type="text" id="name" required><br><br>
             <label for="label">标签:</label>
             <input type="text" id="label" required><br><br>
             <label for="description">描述:</label>
@@ -478,8 +480,7 @@
     };
     function search() {
         $.getJSON('/search_name', {
-            name: $("#search").val(),
-
+            name: $("#name").val(),
         }, function (json) {
 
             option.series[0].nodes = json.data.map(function (node, idx) {
@@ -494,7 +495,7 @@
 
     function delete_name() {
     $.getJSON('/delete_name', {
-        name: $("#delete").val(),
+        name: $("#name").val(),
     }, function (json) {
         option.series[0].nodes = json.data.map(function (node, idx) {
             node.id = idx;
@@ -525,10 +526,12 @@
         })
     });
 
+    var itemType = "";
+    var actionType = "";
     // 操作处理函数
     function handleOperation() {
-        var itemType = document.getElementById("itemType").value; // 获取第一个选择框的值
-        var actionType = document.getElementById("actionType").value; // 获取第二个选择框的值
+        itemType = document.getElementById("itemType").value; // 获取第一个选择框的值
+        actionType = document.getElementById("actionType").value; // 获取第二个选择框的值
 
         if (!itemType) {
             alert("请选择节点或边");
@@ -550,17 +553,33 @@
 
     function submitForm() {
         // 获取用户输入的内容
+        var name = document.getElementById("name").value;
         var label = document.getElementById("label").value;
         var description = document.getElementById("description").value;
         var chineseName = document.getElementById("chineseName").value;
         var foreignName = document.getElementById("foreignName").value;
 
         // 简单验证输入
-        if (!label || !description || !chineseName || !foreignName) {
-            alert("所有字段都是必填的！");
+        if (!name) {
+            alert("name字段是必填的！");
             return;
         }
-
+        if (itemType === "node"){
+            if (actionType === "query"){
+                search()
+                closeModal()
+            }
+            else if (actionType === "delete"){
+                delete_name()
+                closeModal()
+                alert("已成功删除");
+            }
+            else if (actionType === "delete")
+        }
+        else{
+            alert("2");
+        }
+        /*
         // 将数据发送给后端
         var data = {
             label: label,
@@ -586,6 +605,7 @@
             console.error('提交失败:', error);
             alert('提交失败，请重试！');
         });
+        */
     }
 </script>
 </body>
