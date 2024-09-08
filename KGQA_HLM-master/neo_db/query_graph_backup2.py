@@ -7,67 +7,59 @@ import base64
 
 def query(name):
     data = graph.run(
-    "MATCH (p)-[r]->(n:NodeLabel {chname: '%s'}) RETURN p.chname, p.enname, p.tag, p.desc, r.relation, n.chname, n.enname, n.tag, n.desc \
-     UNION ALL \
-     MATCH (p:NodeLabel {chname: '%s'})-[r]->(n) RETURN p.chname, p.enname, p.tag, p.desc, r.relation, n.chname, n.enname, n.tag, n.desc" % (name, name)
+    "match(p )-[r]->(n:Person{Name:'%s'}) return  p.Name,r.relation,n.Name,p.cate,n.cate\
+        Union all\
+    match(p:Person {Name:'%s'}) -[r]->(n) return p.Name, r.relation, n.Name, p.cate, n.cate" % (name,name)
     )
     data = list(data)
     return get_json_data(data)
 
 def delete(name):
     graph.run(
-        "MATCH (p:NodeLabel {chname: '%s'}) DETACH DELETE p" % (name)
+    "match(p:Person {Name:'%s'}) detach delete p" % (name)
     )
     return {'data':[],"links":[]}
 
 def modify(name, kwarg: dict):
     data = graph.run(
-        f"MATCH (n {{chname: '{name}'}}) " +
+        f"MATCH (n {{name: {name}}}) " +
         "SET " +
-        (', '.join([f"n.{k} = '{v}'" for k, v in kwarg.items()])) +
-        " RETURN n"
+        (','.join([f"n.{k} = {v} " for k,v in kwarg])) +
+        "RETURN n"
     )
     data = list(data)
     return get_json_data(data)
-    
+
 
 def get_json_data(data):
-    json_data = {'data': [], 'links': []}
+    json_data = {'data': [], "links": []}
     d = []
-    
     for i in data:
-        # 使用新的属性名进行处理
-        d.append(i['p.chname'] + "_" + i['p.enname'] + "_" + i['p.tag'] + "_" + i['p.desc'])
-        d.append(i['n.chname'] + "_" + i['n.enname'] + "_" + i['n.tag'] + "_" + i['n.desc'])
-    
-    d = list(set(d))
+        # print(i["p.Name"], i["r.relation"], i["n.Name"], i["p.cate"], i["n.cate"])
+        d.append(i['p.Name'] + "_" + i['p.cate'])
+        d.append(i['n.Name'] + "_" + i['n.cate'])
+        d = list(set(d))
 
     name_dict = {}
     count = 0
     for j in d:
         j_array = j.split("_")
-        
+
         data_item = {}
         name_dict[j_array[0]] = count
         count += 1
-
-        data_item['chname'] = j_array[0]
-        data_item['enname'] = j_array[1]
-        data_item['tag'] = j_array[2]
-        data_item['desc'] = j_array[3]
-
+        data_item['name'] = j_array[0]
+        data_item['category'] = CA_LIST[j_array[1]]
         json_data['data'].append(data_item)
 
     for i in data:
         link_item = {}
-        
+
         # source和target都是数字索引
-        link_item['source'] = name_dict[i['p.chname']]
-        link_item['target'] = name_dict[i['n.chname']]
-        link_item['value'] = i['r.relation']  # 假设关系仍然适用
-
+        link_item['source'] = name_dict[i['p.Name']]
+        link_item['target'] = name_dict[i['n.Name']]
+        link_item['value'] = i['r.relation']
         json_data['links'].append(link_item)
-
     return json_data
 
 
